@@ -1,9 +1,9 @@
 // Configuration
-const correctPassword = '5910'; // Change this to your special date
+const correctPassword = '0708'; // Change this to your special date
 const photoSources = [
-    'dina/dina.jpg',
-    'dina/irdina5.jpg',
-    'dina/dina2.jpg'
+    'putri/putri1.jpeg',
+    'putri/putri2.jpeg',
+    'putri/putri3.jpeg'
 ];
 
 // State
