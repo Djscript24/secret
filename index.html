@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#fff8f5">
+    <title>A Little Note ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@300;400;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Floating Hearts Background -->
+    <div class="floating-hearts"></div>
+
+    <div id="password-page" class="page active">
+        <div class="password-gate">
+            <div class="heart-container">
+                <div class="heart-pulse"></div>
+                <div class="heart-icon">🌸</div>
+            </div>
+            <h1>A Little Note for You ✨</h1>
+            <p class="hint">Your birthday</p>
+            <div class="keypad">
+                <div id="password-display" class="password-display" aria-label="Date in day/month format">
+                    <span class="digit-placeholder">_</span>
+                    <span class="digit-placeholder">_</span>
+                    <span class="date-separator" aria-hidden="true">/</span>
+                    <span class="digit-placeholder">_</span>
+                    <span class="digit-placeholder">_</span>
+                </div>
+                <div class="keypad-buttons">
+                    <button class="key" type="button" data-value="1">1</button>
+                    <button class="key" type="button" data-value="2">2</button>
+                    <button class="key" type="button" data-value="3">3</button>
+                    <button class="key" type="button" data-value="4">4</button>
+                    <button class="key" type="button" data-value="5">5</button>
+                    <button class="key" type="button" data-value="6">6</button>
+                    <button class="key" type="button" data-value="7">7</button>
+                    <button class="key" type="button" data-value="8">8</button>
+                    <button class="key" type="button" data-value="9">9</button>
+                    <button class="key clear" type="button" id="clear">Clear</button>
+                    <button class="key" type="button" data-value="0">0</button>
+                    <button class="key backspace" type="button" id="backspace" aria-label="Delete last digit">⌫</button>
+                </div>
+            </div>
+            <button id="unlock-btn" class="unlock-btn" type="button">Open Your Note 🔓</button>
+            <div id="error-message" class="error-message">That date isn't quite right. Please try again.</div>
+        </div>
+    </div>
+
+    <div id="loading-page" class="page hidden">
+        <div class="loading-content">
+            <div class="heart-loader">✨</div>
+            <h1>Preparing a Little Surprise...</h1>
+            <p class="loading-text">Gathering a few nice things to share</p>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="letter-page" class="page hidden">
+        <div class="envelope">
+            <div class="envelope-flap"></div>
+            <div class="love-letter">
+                <div class="letter-header">
+                    <h2>A Note of Appreciation</h2>
+                    <div class="date">Just a little note</div>
+                </div>
+                <div class="letter-content">
+                    <p class="fade-in">Hi Mya,</p>
+                    <p class="fade-in">I've always loved magnolias. There's something about them that feels so effortlessly beautiful. They're elegant, gentle, and quietly captivating. And honestly, when I think of those flowers, I think of you. To me, you're just like a magnolia.</p>
+                    <p class="fade-in">It's not just about how beautiful they look, but the feeling they give. There's a certain warmth and grace about them that doesn't need to be shown off to be noticed. I see that same quality in you, in your smile, the way you carry yourself, and even in the little things you probably don't think much about.</p>
+                    <p class="fade-in">Like a magnolia, you have a beauty that feels natural rather than something you have to try for. You don't need to stand out to be memorable, and you don't need to do anything extraordinary to be appreciated. There's just something about you that makes people notice and remember you.</p>
+                    <p class="fade-in">I hope you know how much I admire you, Mya. Your kindness, your style, and the warmth you bring to the people around you. I guess I just wanted to tell you that, and I hope this little note makes you smile.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-section">
+            <div class="photos-container">
+                <button class="photo-card" type="button" data-index="0" aria-label="Open photo 1">
+                    <img src="mya/mya1.png" alt="" class="photo">
+                </button>
+                <button class="photo-card" type="button" data-index="1" aria-label="Open photo 2">
+                    <img src="mya/mya2.jpeg" alt="" class="photo">
+                </button>
+                <button class="photo-card" type="button" data-index="2" aria-label="Open photo 3">
+                    <img src="mya/mya3.jpeg" alt="" class="photo">
+                </button>
+            </div>
+            <button id="view-all-photos" class="view-btn" type="button">View All Photos 📸</button>
+        </div>
+
+        <div class="audio-player">
+            <p>A Song I Thought You Might Like 🎵</p>
+            <audio id="love-song" controls preload="metadata" aria-describedby="song-status">
+                <source src="mya/magnolia.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            <p id="song-status" class="song-status" role="status" aria-live="polite"></p>
+        </div>
+    </div>
+
+    <!-- Photo Gallery Modal -->
+    <div id="gallery-modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Photo gallery">
+        <div class="modal-content">
+            <button id="close-modal" class="close" type="button" aria-label="Close gallery">&times;</button>
+            <div class="gallery-view">
+                <img id="modal-image" src="" alt="Photo">
+                <div class="gallery-controls">
+                    <button id="prev-btn" class="nav-btn" type="button" aria-label="Previous photo">←</button>
+                    <span id="photo-counter">1 / 3</span>
+                    <button id="next-btn" class="nav-btn" type="button" aria-label="Next photo">→</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
