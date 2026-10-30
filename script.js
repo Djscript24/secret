@@ -9,6 +9,7 @@ const photoSources = [
 // State
 let enteredPassword = '';
 let currentPhotoIndex = 0;
+let audioPrimed = false;
 
 // Elements
 const passwordDisplay = document.querySelector('.password-display');
@@ -120,18 +121,24 @@ function setupAudioPlayer() {
     if (audioPlayer) {
         audioPlayer.volume = 0.3;
         if (window.location.protocol === 'file:') {
-            songStatus.textContent = 'Untuk memutar lagu, buka halaman lewat server lokal, bukan dengan membuka file HTML langsung.';
+            songStatus.textContent = 'To play the song, open this page through a local server instead of opening the HTML file directly.';
         }
         audioPlayer.addEventListener('play', () => {
             songStatus.textContent = '';
-            // Add visual feedback when music plays
-            document.body.style.animation = 'gradientFlow 10s ease infinite';
+            showMusicFeedback();
         });
+        audioPlayer.addEventListener('volumechange', showMusicFeedback);
         audioPlayer.addEventListener('error', () => {
             songStatus.textContent = window.location.protocol === 'file:'
-                ? 'Untuk memutar lagu, buka halaman lewat server lokal, bukan dengan membuka file HTML langsung.'
-                : 'Lagu gagal dimuat. Periksa file lagu lalu coba lagi.';
+                ? 'To play the song, open this page through a local server instead of opening the HTML file directly.'
+                : 'The song could not be loaded. Check the audio file and try again.';
         });
+    }
+}
+
+function showMusicFeedback() {
+    if (audioPlayer && !audioPlayer.muted) {
+        document.body.style.animation = 'gradientFlow 10s ease infinite';
     }
 }
 
@@ -228,6 +235,17 @@ function unlockHeart() {
     keys.forEach(key => key.disabled = true);
     unlockBtn.disabled = true;
 
+    if (audioPlayer) {
+        audioPlayer.muted = true;
+        audioPlayer.currentTime = 0;
+        document.body.style.animation = '';
+        audioPlayer.play().then(() => {
+            audioPrimed = true;
+        }).catch(() => {
+            audioPrimed = false;
+        });
+    }
+
     // Heart unlock animation
     const heartIcon = document.querySelector('.heart-icon');
     heartIcon.style.animation = 'heartbeat 0.5s ease 3';
@@ -288,13 +306,17 @@ function showLetterPage() {
     createConfetti();
 
     if (audioPlayer) {
-        audioPlayer.play().catch(error => {
-            songStatus.textContent = error.name === 'NotAllowedError'
-                ? 'Putar otomatis diblokir browser. Tekan tombol putar pada pemutar lagu.'
-                : window.location.protocol === 'file:'
-                    ? 'Untuk memutar lagu, buka halaman lewat server lokal, bukan dengan membuka file HTML langsung.'
-                    : 'Lagu tidak dapat diputar. Coba tekan tombol putar atau periksa file lagu.';
-        });
+        audioPlayer.currentTime = 0;
+        audioPlayer.muted = false;
+        if (!audioPrimed) {
+            audioPlayer.play().catch(error => {
+                songStatus.textContent = error.name === 'NotAllowedError'
+                    ? 'Autoplay was blocked by your browser. Press the play button to start the song.'
+                    : window.location.protocol === 'file:'
+                        ? 'To play the song, open this page through a local server instead of opening the HTML file directly.'
+                        : 'The song could not be played. Press play or check the audio file.';
+            });
+        }
     }
 }
 
