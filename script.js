@@ -9,7 +9,9 @@ const photoSources = [
 // State
 let enteredPassword = '';
 let currentPhotoIndex = 0;
-let audioPrimed = false;
+let currentCarouselIndex = 0;
+let galleryTouchStart = null;
+let carouselTouchStart = null;
 
 // Elements
 const passwordDisplay = document.querySelector('.password-display');
@@ -24,9 +26,16 @@ const backspaceBtn = document.getElementById('backspace');
 const unlockBtn = document.getElementById('unlock-btn');
 const viewAllBtn = document.getElementById('view-all-photos');
 const photoCards = document.querySelectorAll('.photo-card');
+const photoTrack = document.querySelector('.photos-container');
+const carouselViewport = document.querySelector('.carousel-viewport');
+const carouselDots = document.querySelectorAll('.carousel-dot');
+const carouselPrevBtn = document.getElementById('carousel-prev');
+const carouselNextBtn = document.getElementById('carousel-next');
 const galleryModal = document.getElementById('gallery-modal');
 const modalImage = document.getElementById('modal-image');
 const closeModal = document.getElementById('close-modal');
+const fullscreenGalleryBtn = document.getElementById('fullscreen-gallery');
+const galleryStatus = document.getElementById('gallery-status');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 const photoCounter = document.getElementById('photo-counter');
@@ -99,6 +108,33 @@ function setupEventListeners() {
         });
     });
 
+    carouselPrevBtn.addEventListener('click', () => navigateCarousel(-1));
+    carouselNextBtn.addEventListener('click', () => navigateCarousel(1));
+    carouselDots.forEach(dot => {
+        dot.addEventListener('click', () => showCarouselPhoto(Number(dot.dataset.index)));
+    });
+    carouselViewport.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'touch') {
+            carouselTouchStart = { x: e.clientX, y: e.clientY };
+        }
+    });
+    carouselViewport.addEventListener('pointerup', (e) => {
+        if (e.pointerType !== 'touch' || !carouselTouchStart) {
+            return;
+        }
+
+        const deltaX = e.clientX - carouselTouchStart.x;
+        const deltaY = e.clientY - carouselTouchStart.y;
+        carouselTouchStart = null;
+
+        if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+            navigateCarousel(deltaX < 0 ? 1 : -1);
+        }
+    });
+    carouselViewport.addEventListener('pointercancel', () => {
+        carouselTouchStart = null;
+    });
+
     // View all photos button
     viewAllBtn.addEventListener('click', () => openGallery(0));
 
@@ -108,8 +144,31 @@ function setupEventListeners() {
 
     // Close modal
     closeModal.addEventListener('click', closeGallery);
+    fullscreenGalleryBtn.addEventListener('click', toggleGalleryFullscreen);
+    galleryModal.addEventListener('fullscreenchange', updateFullscreenButton);
     galleryModal.addEventListener('click', (e) => {
         if (e.target === galleryModal) closeGallery();
+    });
+    galleryModal.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'touch') {
+            galleryTouchStart = { x: e.clientX, y: e.clientY };
+        }
+    });
+    galleryModal.addEventListener('pointerup', (e) => {
+        if (e.pointerType !== 'touch' || !galleryTouchStart || galleryModal.classList.contains('hidden')) {
+            return;
+        }
+
+        const deltaX = e.clientX - galleryTouchStart.x;
+        const deltaY = e.clientY - galleryTouchStart.y;
+        galleryTouchStart = null;
+
+        if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+            navigateGallery(deltaX < 0 ? 1 : -1);
+        }
+    });
+    galleryModal.addEventListener('pointercancel', () => {
+        galleryTouchStart = null;
     });
 
     // Keyboard support
@@ -120,6 +179,7 @@ function setupEventListeners() {
 function setupAudioPlayer() {
     if (audioPlayer) {
         audioPlayer.volume = 0.3;
+        audioPlayer.loop = true;
         if (window.location.protocol === 'file:') {
             songStatus.textContent = 'To play the song, open this page through a local server instead of opening the HTML file directly.';
         }
@@ -140,6 +200,20 @@ function showMusicFeedback() {
     if (audioPlayer && !audioPlayer.muted) {
         document.body.style.animation = 'gradientFlow 10s ease infinite';
     }
+}
+
+function showCarouselPhoto(index) {
+    currentCarouselIndex = (index + photoCards.length) % photoCards.length;
+    photoTrack.style.transform = `translateX(-${currentCarouselIndex * 100}%)`;
+    carouselDots.forEach((dot, dotIndex) => {
+        const isActive = dotIndex === currentCarouselIndex;
+        dot.classList.toggle('active', isActive);
+        dot.setAttribute('aria-pressed', String(isActive));
+    });
+}
+
+function navigateCarousel(direction) {
+    showCarouselPhoto(currentCarouselIndex + direction);
 }
 
 // Handle keyboard input
@@ -164,6 +238,7 @@ function handleKeyPress(e) {
     } else if (galleryModal.classList.contains('hidden') === false) {
         if (e.key === 'ArrowLeft') navigateGallery(-1);
         else if (e.key === 'ArrowRight') navigateGallery(1);
+        else if (e.key.toLowerCase() === 'f') toggleGalleryFullscreen();
         else if (e.key === 'Escape') closeGallery();
     }
 }
@@ -235,17 +310,6 @@ function unlockHeart() {
     keys.forEach(key => key.disabled = true);
     unlockBtn.disabled = true;
 
-    if (audioPlayer) {
-        audioPlayer.muted = true;
-        audioPlayer.currentTime = 0;
-        document.body.style.animation = '';
-        audioPlayer.play().then(() => {
-            audioPrimed = true;
-        }).catch(() => {
-            audioPrimed = false;
-        });
-    }
-
     // Heart unlock animation
     const heartIcon = document.querySelector('.heart-icon');
     heartIcon.style.animation = 'heartbeat 0.5s ease 3';
@@ -302,22 +366,72 @@ function showLetterPage() {
     letterPage.classList.remove('hidden');
     letterPage.classList.add('active');
 
+    typeLetter();
+
     // Create confetti celebration
     createConfetti();
 
     if (audioPlayer) {
         audioPlayer.currentTime = 0;
         audioPlayer.muted = false;
-        if (!audioPrimed) {
-            audioPlayer.play().catch(error => {
-                songStatus.textContent = error.name === 'NotAllowedError'
-                    ? 'Autoplay was blocked by your browser. Press the play button to start the song.'
-                    : window.location.protocol === 'file:'
-                        ? 'To play the song, open this page through a local server instead of opening the HTML file directly.'
-                        : 'The song could not be played. Press play or check the audio file.';
-            });
-        }
+        document.body.style.animation = '';
+        audioPlayer.play().then(() => {
+            songStatus.textContent = '';
+        }).catch(error => {
+            songStatus.textContent = error.name === 'NotAllowedError'
+                ? 'Autoplay was blocked by your browser. Press the play button to start the song.'
+                : window.location.protocol === 'file:'
+                    ? 'To play the song, open this page through a local server instead of opening the HTML file directly.'
+                    : 'The song could not be played. Press play or check the audio file.';
+        });
     }
+}
+
+function typeLetter() {
+    const paragraphs = document.querySelectorAll('.letter-content p');
+    const fullTexts = Array.from(paragraphs, paragraph => paragraph.textContent);
+    const typingSpeed = 24;
+    const punctuationPause = 110;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    paragraphs.forEach((paragraph, index) => {
+        paragraph.setAttribute('aria-label', fullTexts[index]);
+        paragraph.textContent = '';
+    });
+
+    let paragraphIndex = 0;
+    let characterIndex = 0;
+    let currentText = fullTexts[paragraphIndex];
+    let activeTextNode = document.createTextNode('');
+    paragraphs[paragraphIndex].appendChild(activeTextNode);
+
+    function typeNextCharacter() {
+        const character = currentText[characterIndex];
+        activeTextNode.appendData(character);
+        characterIndex += 1;
+
+        if (characterIndex >= currentText.length) {
+            paragraphIndex += 1;
+            if (paragraphIndex >= paragraphs.length) {
+                return;
+            }
+
+            currentText = fullTexts[paragraphIndex];
+            characterIndex = 0;
+            activeTextNode = document.createTextNode('');
+            paragraphs[paragraphIndex].appendChild(activeTextNode);
+            setTimeout(typeNextCharacter, 180);
+            return;
+        }
+
+        const pause = /[.,!?]/.test(character) ? punctuationPause : 0;
+        setTimeout(typeNextCharacter, typingSpeed + pause);
+    }
+
+    setTimeout(typeNextCharacter, 250);
 }
 
 // Create confetti effect
@@ -357,6 +471,40 @@ function openGallery(index) {
 function closeGallery() {
     galleryModal.classList.add('hidden');
     document.body.style.overflow = '';
+    if (document.fullscreenElement === galleryModal) {
+        document.exitFullscreen().catch(error => {
+            galleryStatus.textContent = 'Could not exit fullscreen. Please use your browser controls.';
+            console.error('Unable to exit fullscreen gallery mode.', error);
+        });
+    }
+    galleryModal.classList.remove('expanded');
+    updateFullscreenButton();
+}
+
+async function toggleGalleryFullscreen() {
+    try {
+        if (document.fullscreenElement === galleryModal) {
+            await document.exitFullscreen();
+        } else if (typeof galleryModal.requestFullscreen === 'function') {
+            await galleryModal.requestFullscreen();
+        } else {
+            galleryModal.classList.toggle('expanded');
+        }
+        galleryStatus.textContent = '';
+    } catch (error) {
+        galleryModal.classList.add('expanded');
+        galleryStatus.textContent = 'Fullscreen is unavailable. Showing the largest photo view instead.';
+        console.error('Unable to change fullscreen gallery mode.', error);
+    }
+    updateFullscreenButton();
+}
+
+function updateFullscreenButton() {
+    const isExpanded = document.fullscreenElement === galleryModal
+        || galleryModal.classList.contains('expanded');
+    fullscreenGalleryBtn.setAttribute('aria-pressed', String(isExpanded));
+    fullscreenGalleryBtn.setAttribute('aria-label', isExpanded ? 'Exit fullscreen' : 'Enter fullscreen');
+    fullscreenGalleryBtn.title = isExpanded ? 'Exit fullscreen' : 'Fullscreen';
 }
 
 // Navigate gallery
@@ -375,15 +523,11 @@ function navigateGallery(direction) {
 
 // Update gallery image with transition
 function updateGalleryImage() {
-    modalImage.style.opacity = '0';
-    
-    setTimeout(() => {
-        modalImage.src = photoSources[currentPhotoIndex];
-        modalImage.alt = `Memory ${currentPhotoIndex + 1}`;
-        photoCounter.textContent = `${currentPhotoIndex + 1} / ${photoSources.length}`;
-        
-        modalImage.style.opacity = '1';
-    }, 200);
+    modalImage.classList.remove('photo-enter');
+    modalImage.src = photoSources[currentPhotoIndex];
+    modalImage.alt = `Memory ${currentPhotoIndex + 1}`;
+    photoCounter.textContent = `${currentPhotoIndex + 1} / ${photoSources.length}`;
+    requestAnimationFrame(() => modalImage.classList.add('photo-enter'));
 }
 
 // Initialize the application

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#fff8f5">
+    <meta name="theme-color" content="#f7f3ee">
     <title>A Little Note ✨</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@300;400;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -68,33 +68,41 @@
                     <div class="date">Just a little note</div>
                 </div>
                 <div class="letter-content">
-                    <p class="fade-in">Hi Mya,</p>
-                    <p class="fade-in">I've always loved magnolias. There's something about them that feels so effortlessly beautiful. They're elegant, gentle, and quietly captivating. And honestly, when I think of those flowers, I think of you. To me, you're just like a magnolia.</p>
-                    <p class="fade-in">It's not just about how beautiful they look, but the feeling they give. There's a certain warmth and grace about them that doesn't need to be shown off to be noticed. I see that same quality in you, in your smile, the way you carry yourself, and even in the little things you probably don't think much about.</p>
-                    <p class="fade-in">Like a magnolia, you have a beauty that feels natural rather than something you have to try for. You don't need to stand out to be memorable, and you don't need to do anything extraordinary to be appreciated. There's just something about you that makes people notice and remember you.</p>
-                    <p class="fade-in">I hope you know how much I admire you, Mya. Your kindness, your style, and the warmth you bring to the people around you. I guess I just wanted to tell you that, and I hope this little note makes you smile.</p>
+                    <p>Hi Mya,</p>
+                    <p>I've always loved magnolias. There's something about them that feels so effortlessly beautiful. They're elegant, gentle, and quietly captivating. And honestly, when I think of those flowers, I think of you. To me, you're just like a magnolia.</p>
+                    <p>It's not just about how beautiful they look, but the feeling they give. There's a certain warmth and grace about them that doesn't need to be shown off to be noticed. I see that same quality in you, in your smile, the way you carry yourself, and even in the little things you probably don't think much about.</p>
+                    <p>Like a magnolia, you have a beauty that feels natural rather than something you have to try for. You don't need to stand out to be memorable, and you don't need to do anything extraordinary to be appreciated. There's just something about you that makes people notice and remember you.</p>
+                    <p>I hope you know how much I admire you, Mya. Your kindness, your style, and the warmth you bring to the people around you. I guess I just wanted to tell you that, and I hope this little note makes you smile.</p>
                 </div>
             </div>
         </div>
 
-        <div class="gallery-section">
-            <div class="photos-container">
-                <button class="photo-card" type="button" data-index="0" aria-label="Open photo 1">
-                    <img src="mya/mya1.png" alt="" class="photo">
-                </button>
-                <button class="photo-card" type="button" data-index="1" aria-label="Open photo 2">
-                    <img src="mya/mya2.jpeg" alt="" class="photo">
-                </button>
-                <button class="photo-card" type="button" data-index="2" aria-label="Open photo 3">
-                    <img src="mya/mya3.jpeg" alt="" class="photo">
-                </button>
+        <div class="gallery-section" role="region" aria-label="Photo carousel" aria-roledescription="carousel">
+            <div class="carousel-viewport">
+                <div class="photos-container">
+                    <button class="photo-card" type="button" data-index="0" aria-label="Open photo 1">
+                        <img src="mya/mya1.png" alt="" class="photo">
+                    </button>
+                    <button class="photo-card" type="button" data-index="1" aria-label="Open photo 2">
+                        <img src="mya/mya2.jpeg" alt="" class="photo">
+                    </button>
+                    <button class="photo-card" type="button" data-index="2" aria-label="Open photo 3">
+                        <img src="mya/mya3.jpeg" alt="" class="photo">
+                    </button>
+                </div>
+                <button id="carousel-prev" class="carousel-arrow carousel-prev" type="button" aria-label="Previous photo">←</button>
+                <button id="carousel-next" class="carousel-arrow carousel-next" type="button" aria-label="Next photo">→</button>
+            </div>
+            <div class="carousel-dots" role="group" aria-label="Choose a photo">
+                <button class="carousel-dot active" type="button" data-index="0" aria-label="Show photo 1" aria-pressed="true"></button>
+                <button class="carousel-dot" type="button" data-index="1" aria-label="Show photo 2" aria-pressed="false"></button>
+                <button class="carousel-dot" type="button" data-index="2" aria-label="Show photo 3" aria-pressed="false"></button>
             </div>
             <button id="view-all-photos" class="view-btn" type="button">View All Photos 📸</button>
         </div>
 
         <div class="audio-player">
-            <p>A Song I Thought You Might Like 🎵</p>
-            <audio id="love-song" controls preload="metadata" aria-describedby="song-status">
+            <audio id="love-song" controls loop preload="metadata" aria-describedby="song-status">
                 <source src="mya/magnolia.mp3" type="audio/mpeg">
                 Your browser does not support the audio element.
             </audio>
@@ -105,6 +113,7 @@
     <!-- Photo Gallery Modal -->
     <div id="gallery-modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Photo gallery">
         <div class="modal-content">
+            <button id="fullscreen-gallery" class="fullscreen-toggle" type="button" aria-label="Enter fullscreen" aria-pressed="false" title="Fullscreen">⛶</button>
             <button id="close-modal" class="close" type="button" aria-label="Close gallery">&times;</button>
             <div class="gallery-view">
                 <img id="modal-image" src="" alt="Photo">
@@ -113,6 +122,7 @@
                     <span id="photo-counter">1 / 3</span>
                     <button id="next-btn" class="nav-btn" type="button" aria-label="Next photo">→</button>
                 </div>
+                <p id="gallery-status" class="gallery-status" role="status" aria-live="polite"></p>
             </div>
         </div>
     </div>
